@@ -33,7 +33,6 @@
 </tr>
 </tbody>
 </table>
-<p>These are design differences, not benchmark results or claims of superiority over specific competing plugins. Detection completeness, speed and compatibility depend on the world and server.</p>
 </section><section class="page" id="Installation" hidden><h1>Installation</h1>
 <ol>
 <li>Back up all worlds, vanilla playerdata and existing plugin data. Test on a disposable copy.</li>
@@ -44,8 +43,6 @@
 <li>Run <code>/rm help</code> and verify permissions. Before BUILDS, confirm the world generation is compatible or disable comparison.</li>
 </ol>
 <p>Existing YAML files may not automatically receive new defaults. Compare them with the bundled examples. Do not overwrite your database or recovery lock file.</p>
-<h2>Building from source (optional)</h2>
-<p>Use JDK 21+ and Gradle 8.10+; run <code>gradle clean build</code>. The shaded JAR is in <code>build/libs/</code>. The source targets Paper API <code>1.21.11-R0.1-SNAPSHOT</code> by default; adjust <code>paperApiVersion</code> only to an appropriate published API. The server itself may require a newer Java runtime.</p>
 </section><section class="page" id="Core-Features" hidden><h1>Core features</h1>
 <ul>
 <li>Separate ITEMS and BUILDS operations.</li>
@@ -59,7 +56,6 @@
 <li>Adaptive TPS/MSPT throttling for BUILDS.</li>
 <li>Mandatory target-world lockdown for BUILDS, configurable server admission policy and persistent recovery locks.</li>
 <li>Sender-specific confirmation, one active reset, console progress and failure reporting.</li>
-<li>Customizable selected messages and a colored startup banner with enabled dependency indicators.</li>
 </ul>
 </section><section class="page" id="Reset-Types" hidden><h1>Reset types</h1>
 <h2>ITEMS</h2>
