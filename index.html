@@ -1,0 +1,514 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ResetManager • Documentation</title><link rel="stylesheet" href="style.css"><script defer src="script.js"></script></head><body><header><button id="menu" aria-label="Toggle navigation">☰</button><a class="brand" href="#home"><b>ResetManager</b><small>DOCUMENTATION</small></a><span class="version">v0.0.1</span><div class="spacer"></div><button id="theme" aria-label="Toggle color theme">Light / dark</button></header><aside id="sidebar"><label for="search">Search documentation</label><input id="search" type="search" placeholder="Search pages…"><div id="results" hidden></div><nav id="nav"><a href="#home">Overview</a><div class="group">Getting started</div><a href="#Introduction">Introduction</a><a href="#Why-ResetManager">Why ResetManager?</a><a href="#Installation">Installation</a><div class="group">Documentation</div><a href="#Core-Features">Core Features</a><a href="#Reset-Types">Reset Types</a><a href="#Commands">Commands</a><a href="#Permissions">Permissions</a><a href="#Configuration">Configuration</a><a href="#Configuration-Examples">Configuration Examples</a><a href="#Performance-Modes">Performance Modes</a><a href="#World-Lockdown">World Lockdown</a><a href="#Database">Database</a><a href="#Soft-Dependencies">Soft Dependencies</a><div class="group">Support</div><a href="#FAQ">FAQ</a><a href="#Troubleshooting">Troubleshooting</a><a href="#Safety-and-Limitations">Safety and Limitations</a><a href="#Plugin-Information">Plugin Information</a></nav></aside><main><div class="crumb">ResetManager / <span id="crumb">Overview</span></div><section class="page" id="home"><div class="hero"><span class="eyebrow">MINECRAFT SERVER MANAGEMENT / V0.0.1</span><h1>Reset your world.<br><em>Preserve its nature.</em></h1><p>Controlled item and build resets, historical detection and configurable safety protections for Minecraft servers.</p><a class="primary" href="#Installation">Get started →</a> <a class="secondary" href="#Commands">View commands</a></div><div class="warning"><strong>Before you reset</strong><p>Back up worlds, player data and the database. ITEMS clears inventories and Ender Chests globally. Reference comparison is experimental.</p></div><h2>Built for server owners</h2><div class="cards"><a class="feature" href="#Reset-Types"><span>01</span><h3>Smart resets</h3><p>Separate ITEMS and BUILDS workflows.</p></a><a class="feature" href="#World-Lockdown"><span>02</span><h3>World lockdown</h3><p>Control access during destructive operations.</p></a><a class="feature" href="#Performance-Modes"><span>03</span><h3>Performance modes</h3><p>ECO, BALANCED, TURBO and CUSTOM.</p></a><a class="feature" href="#Database"><span>04</span><h3>Persistent storage</h3><p>SQLite, MySQL and verification cache.</p></a></div><h2>Explore the documentation</h2><p>Find setup instructions, configuration examples and safety guidance using the sidebar or search.</p></section><section class="page" id="Introduction" hidden><h1>Introduction</h1>
+<p>ResetManager is a Minecraft server administration plugin for controlled item and build resets within a defined world boundary. It combines persistent placement tracking, optional historical CoreProtect lookups and experimental reference terrain comparison to identify eligible blocks and containers.</p>
+<p>Use ITEMS to clear inventories and equipment, or BUILDS to remove recorded builds and attempt to restore differences against compatible generated terrain. Both operations require confirmation. It is intended for maintenance and seasonal resets, not as a replacement for backups or a general-purpose rollback plugin.</p>
+</section><section class="page" id="Why-ResetManager" hidden><h1>Why ResetManager?</h1>
+<p>ResetManager brings several reset workflows together in one plugin. Rather than deleting a world folder or relying solely on manual region selection, administrators can select a world and reset type.</p>
+<table>
+<thead>
+<tr>
+  <th>Approach</th>
+  <th>ResetManager's distinction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Full world deletion</td>
+  <td>Works within an existing world and scan boundary.</td>
+</tr>
+<tr>
+  <td>Manual block cleanup</td>
+  <td>Uses placement records and optional reference comparison.</td>
+</tr>
+<tr>
+  <td>History-only cleanup</td>
+  <td>Can attempt to identify older untracked material differences.</td>
+</tr>
+<tr>
+  <td>Inventory-only tools</td>
+  <td>Combines world item cleanup with global vanilla player inventory cleanup.</td>
+</tr>
+<tr>
+  <td>Fixed-speed processing</td>
+  <td>Offers four reference-change budgets and adaptive throttling.</td>
+</tr>
+</tbody>
+</table>
+<p>These are design differences, not benchmark results or claims of superiority over specific competing plugins. Detection completeness, speed and compatibility depend on the world and server.</p>
+</section><section class="page" id="Installation" hidden><h1>Installation</h1>
+<ol>
+<li>Back up all worlds, vanilla playerdata and existing plugin data. Test on a disposable copy.</li>
+<li>Obtain the release JAR <code>ResetManager-v0.0.1.jar</code> from the publisher. Place it in <code>plugins/</code>.</li>
+<li>Start the server and inspect the startup banner and logs.</li>
+<li>Stop the server or edit configuration during maintenance; review <code>plugins/ResetManager/config.yml</code> and <code>messages.yml</code>.</li>
+<li>Restart for database changes; <code>/rm reload</code> reloads YAML settings.</li>
+<li>Run <code>/rm help</code> and verify permissions. Before BUILDS, confirm the world generation is compatible or disable comparison.</li>
+</ol>
+<p>Existing YAML files may not automatically receive new defaults. Compare them with the bundled examples. Do not overwrite your database or recovery lock file.</p>
+<h2>Building from source (optional)</h2>
+<p>Use JDK 21+ and Gradle 8.10+; run <code>gradle clean build</code>. The shaded JAR is in <code>build/libs/</code>. The source targets Paper API <code>1.21.11-R0.1-SNAPSHOT</code> by default; adjust <code>paperApiVersion</code> only to an appropriate published API. The server itself may require a newer Java runtime.</p>
+</section><section class="page" id="Core-Features" hidden><h1>Core features</h1>
+<ul>
+<li>Separate ITEMS and BUILDS operations.</li>
+<li>Native world border support and configurable fallback diameter.</li>
+<li>Generated chunk discovery, including compatible pregenerated chunks; target chunks are not intentionally generated by the reset.</li>
+<li>Persistent placement and interaction tracking using SQLite or MySQL.</li>
+<li>Optional historical CoreProtect lookup for placements and containers.</li>
+<li>Experimental seed-based reference terrain comparison, asynchronous snapshot comparison and section fingerprints.</li>
+<li>Persistent verification cache and tracked-chunk prioritization.</li>
+<li>ECO, BALANCED, TURBO and CUSTOM reference block-change budgets.</li>
+<li>Adaptive TPS/MSPT throttling for BUILDS.</li>
+<li>Mandatory target-world lockdown for BUILDS, configurable server admission policy and persistent recovery locks.</li>
+<li>Sender-specific confirmation, one active reset, console progress and failure reporting.</li>
+<li>Customizable selected messages and a colored startup banner with enabled dependency indicators.</li>
+</ul>
+</section><section class="page" id="Reset-Types" hidden><h1>Reset types</h1>
+<h2>ITEMS</h2>
+<p>Clears eligible block container contents (including older containers), lecterns, decorated pots, chiseled bookshelves, dropped items, item-frame contents, armor stand equipment, inventory-holder entities and mob equipment inside the selected boundary. Identifiable untouched natural loot-table containers are preserved. Older natural containers without loot-table metadata may be cleared.</p>
+<p><strong>Global impact:</strong> all online and offline vanilla player inventories, armor, offhand and Ender Chests are cleared across every world. New logins are blocked during ITEMS. Offline processing assumes the primary world's <code>playerdata</code> directory; third-party inventory stores are not covered. Other root NBT data is retained by the offline wiper.</p>
+<h2>BUILDS</h2>
+<p>Removes tracked placements, available historical placements and detected touched containers. Reference comparison generates a temporary compatible world and compares material differences at matching coordinates, restoring reference block data for eligible differences. Tracked/history removals are applied separately as air, so exact terrain restoration is not guaranteed. State-only differences are not restored by comparison.</p>
+<p>The target world must be empty. Untouched natural containers are intended to remain when they match the reference; mismatched generation or missing history can defeat classification. Neither player age nor ownership is an intentional exemption. No complete detection guarantee exists.</p>
+<h2>Boundary</h2>
+<p>A custom vanilla world border defines the scan square. Otherwise the default fallback is 15,000 blocks in diameter (7,500 from center to edge), centered at X=0, Z=0. The actual world border is not changed.</p>
+</section><section class="page" id="Commands" hidden><h1>Commands</h1>
+<table>
+<thead>
+<tr>
+  <th>Command</th>
+  <th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>/rm</code> or <code>/rm help</code></td>
+  <td>Show command guide</td>
+</tr>
+<tr>
+  <td><code>/rm version</code></td>
+  <td>Show version and author</td>
+</tr>
+<tr>
+  <td><code>/rm reload</code></td>
+  <td>Reload configuration and messages; database changes require restart</td>
+</tr>
+<tr>
+  <td><code>/rm world &lt;world&gt; items</code></td>
+  <td>Request an ITEMS reset</td>
+</tr>
+<tr>
+  <td><code>/rm world &lt;world&gt; builds</code></td>
+  <td>Request a BUILDS reset</td>
+</tr>
+<tr>
+  <td><code>/rm confirm</code></td>
+  <td>Confirm your pending request</td>
+</tr>
+<tr>
+  <td><code>/rm cancel</code></td>
+  <td>Cancel your pending request, not a running job</td>
+</tr>
+</tbody>
+</table>
+<p>All commands require <code>resetmanager.admin</code>. The target world must be loaded. Confirmation expires after 60 seconds by default and must come from the same sender. The world and boundary are checked again at confirmation. Only one reset may run at once.</p>
+<h2>Console example</h2>
+<p>With default BUILDS lockdown, disconnect everyone first. Enter in the server console (without slash):</p>
+<pre><code class="language-text">rm world world builds
+rm confirm
+</code></pre>
+<p>Read the confirmation warning before proceeding. Replace <code>world</code> with the actual world name. Do not use ITEMS unless a global player inventory wipe is intended.</p>
+</section><section class="page" id="Permissions" hidden><h1>Permissions</h1>
+<table>
+<thead>
+<tr>
+  <th>Node</th>
+  <th>Default</th>
+  <th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>resetmanager.admin</code></td>
+  <td>OP</td>
+  <td>All ResetManager commands</td>
+</tr>
+</tbody>
+</table>
+<p>No separate reset-type or lockdown bypass permission is declared. The <code>except</code> admission policy checks operator status, not this permission. Operators cannot bypass target-world lockdown. Grant administrative access only to trusted staff.</p>
+</section><section class="page" id="Configuration" hidden><h1>Configuration</h1>
+<p>See the <a href="#Configuration-Examples">Configuration Examples</a> page for the bundled YAML defaults.</p>
+<table>
+<thead>
+<tr>
+  <th>Key</th>
+  <th>Default</th>
+  <th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>fallback-border-diameter</code></td>
+  <td>15000</td>
+  <td>Virtual square width when vanilla border is default</td>
+</tr>
+<tr>
+  <td><code>fallback-center-x</code>, <code>fallback-center-z</code></td>
+  <td>0</td>
+  <td>Fallback center</td>
+</tr>
+<tr>
+  <td><code>chunks-per-tick</code></td>
+  <td>1</td>
+  <td>ITEMS chunk processing budget (clamped 1–64)</td>
+</tr>
+<tr>
+  <td><code>confirmation-seconds</code></td>
+  <td>60</td>
+  <td>Pending request lifetime</td>
+</tr>
+<tr>
+  <td><code>progress-interval-seconds</code></td>
+  <td>3</td>
+  <td>ITEMS reporting interval; BUILDS uses ~3 seconds</td>
+</tr>
+<tr>
+  <td><code>max-candidate-chunks</code></td>
+  <td>0</td>
+  <td>Unlimited; positive value rejects larger jobs</td>
+</tr>
+<tr>
+  <td><code>offline-player-files-per-tick</code></td>
+  <td>5</td>
+  <td>Offline ITEMS batch (clamped 1–50)</td>
+</tr>
+<tr>
+  <td><code>database.type</code></td>
+  <td>sqlite</td>
+  <td>Storage backend; restart required</td>
+</tr>
+<tr>
+  <td><code>builds-reset.coreprotect-history</code></td>
+  <td>true</td>
+  <td>Optional history lookup</td>
+</tr>
+<tr>
+  <td><code>builds-reset.legacy-comparison.enabled</code></td>
+  <td>true</td>
+  <td>Experimental comparison</td>
+</tr>
+<tr>
+  <td><code>builds-reset.legacy-comparison.confirm-compatible-generation</code></td>
+  <td>true</td>
+  <td>Administrator assertion of compatible vanilla generation, not automatic proof</td>
+</tr>
+<tr>
+  <td><code>builds-reset.legacy-comparison.persistent-cache</code></td>
+  <td>true</td>
+  <td>Reuse verified fingerprints</td>
+</tr>
+<tr>
+  <td><code>builds-reset.legacy-comparison.cache-generation-id</code></td>
+  <td>default</td>
+  <td>Change after generation/datapack changes</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="#Performance-Modes">Performance Modes</a>, <a href="#World-Lockdown">World Lockdown</a> and <a href="#Database">Database</a> for remaining settings. Selected messages support legacy <code>&amp;</code> color codes; not every plugin message is configurable.</p>
+</section><section class="page" id="Configuration-Examples" hidden><h1>Configuration examples</h1>
+<p>The following YAML examples are preserved from the supplied documentation package.</p>
+<h2>config.yml</h2>
+<pre><code class="language-yaml"># A vanilla-default-size world border triggers this fallback scan boundary.
+fallback-border-diameter: 15000
+fallback-center-x: 0
+fallback-center-z: 0
+# Chunks processed per server tick; adjust conservatively.
+chunks-per-tick: 1
+confirmation-seconds: 60
+progress-interval-seconds: 3
+# Maximum candidate chunks in a single reset (0 = unlimited).
+max-candidate-chunks: 0
+
+# Item resets scan existing containers, even when they predate installation.
+# Identifiable unopened natural loot-table containers are preserved.
+# IMPORTANT: old natural containers without loot-table metadata cannot be reliably distinguished.
+
+# Tracking storage. Changing database.type requires a server restart.
+# Existing SQLite data is not automatically copied to MySQL (or vice versa).
+database:
+  type: sqlite # sqlite or mysql
+  mysql:
+    host: localhost
+    port: 3306
+    database: resetmanager
+    username: root
+    password: &quot;&quot;
+
+# Offline player .dat files processed per server tick during the final ITEMS phase.
+offline-player-files-per-tick: 5
+
+builds-reset:
+  coreprotect-history: true
+  legacy-comparison:
+    enabled: true
+    # WARNING: true assumes matching vanilla generation; disable for incompatible worlds.
+    confirm-compatible-generation: true
+    persistent-cache: true
+    # Change when datapacks or generation settings change.
+    cache-generation-id: default
+  performance:
+    # ECO = 128, BALANCED = 512, TURBO = 2048 reference block changes per tick.
+    # CUSTOM uses blocks-per-tick below; preset modes ignore that setting.
+    # WARNING: CUSTOM values above TURBO (2048) may cause severe tick lag,
+    # TPS drops, freezes or watchdog shutdowns. Test on a backup first.
+    # Adaptive throttling cannot guarantee protection against a long tick.
+    mode: ECO
+    # CUSTOM only: positive integer (1 to 2147483647); invalid values use 128.
+    blocks-per-tick: 128
+    adaptive-throttling: true
+    minimum-tps: 19.0
+    maximum-mspt: 45.0
+
+# Target-world lockdown is mandatory for BUILDS, regardless of server entry policy.
+world-lockdown:
+  # true (recommended): nobody may join; console only, empty server required.
+  # false: players may join other worlds.
+  # except: operators only; non-operators must disconnect before starting.
+  # Operators never bypass target-world lockdown.
+  block-server-entering: true
+  fallback-world: &quot;spawn&quot;
+  redirect-on-login: true
+  redirect-on-respawn: true
+</code></pre>
+<h2>messages.yml</h2>
+<pre><code class="language-yaml"># Messages use light aqua, white, soft gray, green, and warning amber.
+no-permission: 'You do not have permission to use ResetManager.'
+
+comparison-world-occupied: '&amp;eReset blocked: &amp;f{world} contains {players} player(s). Evacuate everyone and request the reset again.'
+comparison-entry-blocked: '&amp;eThis world is temporarily unavailable during a BUILDS reset.'
+
+server-empty-required: '&amp;eDisconnect all players, including operators, and run the reset from console.'
+operators-only-required: '&amp;eAll non-operators must disconnect before this reset.'
+server-entry-blocked: '&amp;eA world reset is running. Please reconnect after it completes.'
+world-redirected: '&amp;eYou have been redirected while the world reset is running.'
+world-unlocked: '&amp;aWorld reset complete; entry restored.'
+</code></pre>
+<h2>plugin.yml</h2>
+<pre><code class="language-yaml">name: ResetManager
+version: 0.0.1
+main: dev.klioh.resetmanager.ResetManager
+api-version: '1.21'
+author: Klioh_
+description: Confirmed, bounded, tracked world item and build resets.
+softdepend: [CoreProtect, Chunky]
+commands:
+  rm:
+    description: ResetManager administration
+    usage: /rm help
+    permission: resetmanager.admin
+permissions:
+  resetmanager.admin:
+    default: op
+</code></pre>
+<p><a href="#home">Back to documentation home</a></p>
+</section><section class="page" id="Performance-Modes" hidden><h1>Performance modes</h1>
+<table>
+<thead>
+<tr>
+  <th>Mode</th>
+  <th style="text-align:right">Reference block changes per tick</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>ECO (default)</td>
+  <td style="text-align:right">128</td>
+</tr>
+<tr>
+  <td>BALANCED</td>
+  <td style="text-align:right">512</td>
+</tr>
+<tr>
+  <td>TURBO</td>
+  <td style="text-align:right">2048</td>
+</tr>
+<tr>
+  <td>CUSTOM</td>
+  <td style="text-align:right">Positive integer configured by owner</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-yaml">builds-reset:
+  performance:
+    mode: ECO
+    blocks-per-tick: 128
+    adaptive-throttling: true
+    minimum-tps: 19.0
+    maximum-mspt: 45.0
+</code></pre>
+<p>Preset modes ignore <code>blocks-per-tick</code>. CUSTOM accepts 1–2147483647; invalid values fall back to 128. Values above 2048 risk severe lag, freezes or watchdog shutdowns. Adaptive throttling pauses BUILDS work when TPS is below the threshold or average MSPT exceeds its threshold; it cannot prevent every long tick.</p>
+<p>The budget applies only to reference changes, not all tracked removals, chunk loads or history queries. First scans can take considerable time. Section hashing still reads block data; cache hits avoid reference chunk regeneration, not all scanning. No performance guarantee or benchmark is implied.</p>
+</section><section class="page" id="World-Lockdown" hidden><h1>World lockdown</h1>
+<p>Target-world lockdown is mandatory for BUILDS, even when comparison is disabled.</p>
+<pre><code class="language-yaml">world-lockdown:
+  block-server-entering: true
+  fallback-world: &quot;spawn&quot;
+  redirect-on-login: true
+  redirect-on-respawn: true
+</code></pre>
+<table>
+<thead>
+<tr>
+  <th>Policy</th>
+  <th>Behavior during BUILDS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>true</code> (recommended)</td>
+  <td>Empty server required; console only; everyone denied including OPs</td>
+</tr>
+<tr>
+  <td><code>false</code></td>
+  <td>Players may join other worlds; target must remain empty</td>
+</tr>
+<tr>
+  <td><code>except</code></td>
+  <td>Only OPs may join; non-OPs must disconnect before start</td>
+</tr>
+</tbody>
+</table>
+<p>Teleport and portal entry are blocked; login, respawn and world-change safeguards redirect or kick when needed. If the preferred fallback is unavailable, another unrestricted loaded world may be used. Unexpected occupancy is checked before BUILDS work; unresolved entry aborts the job.</p>
+<p><code>world-locks.yml</code> persists target-world locks across interruptions. Successful BUILDS completion releases the lock; failures retain it. Server-wide admission restrictions apply during the active job, not indefinitely after a restart. To recover, investigate errors, back up and rerun the same BUILDS request from console. There is no dedicated unlock or exact resume command. Do not casually delete the lock file.</p>
+</section><section class="page" id="Database" hidden><h1>Database and cache</h1>
+<p>SQLite is the default (<code>plugins/ResetManager/resetmanager.db</code>). MySQL is optional using <code>database.type: mysql</code> and the host, port, database, username and password settings. Drivers are bundled. Restart to reconnect; changing backends does not migrate records automatically.</p>
+<p>Legacy <code>tracking.yml</code> is imported only when the selected database is empty, then archived after successful persistence. Tracking records are loaded into memory and periodically saved; large datasets may increase memory and persistence costs.</p>
+<p>The <code>verified_chunks</code> table stores fingerprints for chunks with no material differences at comparison time. Cache keys include world and generation signature. Change <code>cache-generation-id</code> when generation settings or datapacks change. Matching live fingerprints can skip reference regeneration, but history and tracking checks still run. Modified chunks are rechecked. Rerunning after interruption may reuse cache; exact checkpoint or automatic continuation is not implemented.</p>
+<p>Back up database and world data together. Protect MySQL credentials and do not publish your live config.</p>
+</section><section class="page" id="Soft-Dependencies" hidden><h1>Soft dependencies</h1>
+<table>
+<thead>
+<tr>
+  <th>Plugin</th>
+  <th>Required?</th>
+  <th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>CoreProtect</td>
+  <td>No</td>
+  <td>Optional historical placement and container lookup through its API. Requires compatible API and retained logs.</td>
+</tr>
+<tr>
+  <td>Chunky</td>
+  <td>No</td>
+  <td>Pregenerated chunks can be scanned; declared as a soft dependency for load ordering. No direct Chunky API integration.</td>
+</tr>
+</tbody>
+</table>
+<p>Both are detected in the startup banner when enabled. Without CoreProtect, internal tracking and enabled reference comparison remain available. Historical lookup failures can result in failed chunks. CoreProtect history is not a complete provenance record.</p>
+</section><section class="page" id="FAQ" hidden><h1>Frequently asked questions</h1><details><summary>Does ResetManager delete the world?</summary><div><p>No. It modifies eligible blocks, items and player data within the described scopes.</p>
+</div></details><details><summary>Can it detect builds before installation?</summary><div><p>It attempts this through retained CoreProtect history and compatible reference comparison. Neither guarantees complete detection.</p>
+</div></details><details><summary>Does it remove offline players&#x27; builds?</summary><div><p>Recorded or identifiable builds are processed regardless of owner online status.</p>
+</div></details><details><summary>Will ITEMS clear my inventory in another world?</summary><div><p>Yes. Vanilla player inventories and Ender Chests are globally cleared, including offline records in the supported directory.</p>
+</div></details><details><summary>Are natural chests safe?</summary><div><p>Identifiable untouched loot-table containers are preserved by ITEMS. BUILDS removes detected touched containers. Missing metadata or generation differences can lead to incorrect classification.</p>
+</div></details><details><summary>Do I need CoreProtect or Chunky?</summary><div><p>No. They are optional; CoreProtect improves historical evidence when compatible logs exist.</p>
+</div></details><details><summary>Can I reset while players are online?</summary><div><p>Default BUILDS policy requires everyone offline and console execution. Other policies permit access to other worlds, never the target. ITEMS blocks new logins.</p>
+</div></details><details><summary>Can I cancel a running reset?</summary><div><p><code>/rm cancel</code> only cancels a pending request. There is no documented active-job cancellation command.</p>
+</div></details><details><summary>Will the first comparison be fast?</summary><div><p>Not necessarily. Large pregenerated worlds may take a long time; subsequent cache hits can reduce work.</p>
+</div></details><details><summary>Does it support custom terrain?</summary><div><p>Reference comparison rejects a non-null custom generator and cannot guarantee compatibility with datapacks or upgraded worlds. Disable comparison for incompatible generation.</p>
+</div></details><details><summary>Can I undo a reset?</summary><div><p>No built-in undo. Restore verified backups.</p>
+</div></details><details><summary>Does it support every Paper fork?</summary><div><p>No universal compatibility claim is made. Test your exact server build.</p>
+</div></details></section><section class="page" id="Troubleshooting" hidden><h1>Troubleshooting</h1>
+<table>
+<thead>
+<tr>
+  <th>Symptom</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Reset blocked: players present</td>
+  <td>Evacuate target; with default policy disconnect everyone and use console.</td>
+</tr>
+<tr>
+  <td>No valid confirmation</td>
+  <td>Repeat request and confirm as same sender before timeout.</td>
+</tr>
+<tr>
+  <td>World not found</td>
+  <td>Check exact name and ensure world is loaded.</td>
+</tr>
+<tr>
+  <td>Reference initialization failed</td>
+  <td>Check console, generator compatibility, height and available disk space; disable comparison for incompatible worlds.</td>
+</tr>
+<tr>
+  <td>Progress appears stalled</td>
+  <td>Check TPS/MSPT, reference generation and database/history queries; adaptive throttling may pause work.</td>
+</tr>
+<tr>
+  <td>Chunk failures</td>
+  <td>Inspect stack traces and CoreProtect API compatibility; do not treat a failed job as complete.</td>
+</tr>
+<tr>
+  <td>World remains locked after restart</td>
+  <td>Recovery lock is intentional; investigate, back up and rerun BUILDS.</td>
+</tr>
+<tr>
+  <td>Old configuration defaults remain</td>
+  <td>Merge new keys from bundled examples; restart for database changes.</td>
+</tr>
+<tr>
+  <td>Offline player failures</td>
+  <td>Check file access, primary playerdata path and logs; restore backups if needed.</td>
+</tr>
+</tbody>
+</table>
+<p>When reporting an issue include plugin version, exact server build, Java version, relevant configuration with secrets removed, reset type and console log.</p>
+</section><section class="page" id="Safety-and-Limitations" hidden><h1>Safety and limitations</h1>
+<p><strong>Resets are destructive and not transactionally atomic.</strong> Always keep verified backups of worlds, playerdata and tracking storage. Test on a disposable copy and schedule maintenance.</p>
+<p>Reference comparison is enabled by default in this release but remains experimental. Matching seed, environment, world type, structure settings and height do not prove identical generation. Version changes, datapacks, natural growth, fluids and explosions can create differences unrelated to players. Identical replacements cannot be detected from terrain alone. State-only differences are not restored. Tracking and history are incomplete for indirect edits and some plugin changes.</p>
+<p>For incompatible worlds disable <code>builds-reset.legacy-comparison.enabled</code>; internal tracking and available history remain useful. Do not set compatibility approval to true merely to bypass an error. A full reset may take hours or longer; no guaranteed runtime or lag-free operation exists.</p>
+<p>Check completion logs for zero chunk/player failures and inspect results before reopening. Interrupted BUILDS can retain a persistent world lock. Cache reuse is not a transactional recovery mechanism. No built-in undo exists. Third-party player inventory stores and nonstandard region layouts are not guaranteed to be covered.</p>
+</section><section class="page" id="Plugin-Information" hidden><h1>Plugin information</h1>
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Name</td>
+  <td>ResetManager</td>
+</tr>
+<tr>
+  <td>Version</td>
+  <td>0.0.1</td>
+</tr>
+<tr>
+  <td>Author</td>
+  <td>Klioh_</td>
+</tr>
+<tr>
+  <td>JAR</td>
+  <td><code>ResetManager-v0.0.1.jar</code></td>
+</tr>
+<tr>
+  <td>Versions Supported</td>
+  <td>26.3 (tested on DivineMC)</td>
+</tr>
+<tr>
+  <td>Soft Dependencies</td>
+  <td>CoreProtect, Chunky</td>
+</tr>
+<tr>
+  <td>Release Date</td>
+  <td>November 25, 2026</td>
+</tr>
+</tbody>
+</table>
+
+</section><footer>ResetManager v0.0.1 · Developed by Klioh_ · DevKlioh_ Plugins</footer></main></body></html>
